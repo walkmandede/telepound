@@ -35,7 +35,7 @@ class MessageListModel{
       'type' : type.name,
       'dateTime' : dateTime.toString(),
       'name' : name,
-      'image' : image,
+      'image' : xFullPath?AppConstants.convertLocalImage(image: image):image,
       'lastMessage' : lastMessage
     };
 
