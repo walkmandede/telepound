@@ -8,7 +8,7 @@ import '../models/frog_request.dart';
 
 class AppConstants{
 
-  static String endPoint = '192.168.100.4';
+  static String endPoint = '192.168.1.32';
   static int port = 1234;
   static String filePathUserImages = 'userImages/';
   static String filePathMessageImages = 'messageImages/';

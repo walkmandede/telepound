@@ -17,8 +17,8 @@ class GroupModel{
       id: DatabaseService.idParser(data),
       name: data['name'].toString(),
       image: data['image'].toString(),
-      members: (data['members']) as List<String>,
-      hosts: (data['hosts']) as List<String>
+      members: (data['members'] as List<dynamic>).map((e) => e.toString()).toList(),
+      hosts: (data['hosts'] as List<dynamic>).map((e) => e.toString()).toList()
     );
   }
 
