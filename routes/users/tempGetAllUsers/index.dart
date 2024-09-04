@@ -9,45 +9,53 @@ import '../../../utils/global_functions.dart';
 import '../../../utils/services/db_orm.dart';
 import '../../../utils/services/db_services.dart';
 
-Future<Response> onRequest(RequestContext context) async {
-  if (context.request.method == HttpMethod.get) {
+Future<Response> onRequest(RequestContext context) async{
+  if(context.request.method == HttpMethod.get){
     return DatabaseService.startConnection(
       context,
       _middleware(context: context),
     );
-  } else {
+  }
+  else{
     return Response.json(
         statusCode: HttpStatus.methodNotAllowed,
         body: AppConstants.customResponseBody(
-          xSuccess: false,
-          message: 'Method Not Allowed',
-        ));
+            xSuccess: false,
+            message: 'Method Not Allowed',
+        )
+    );
   }
 }
 
 Future<Response> _middleware({required RequestContext context}) async {
-  try {
-    final token = context.request.headers['token'] ?? '';
+
+  try{
+    final token = context.request.headers['token']??'';
 
     final user = await DatabaseORM.fetchUserByToken(token: token);
 
-    if (user == null) {
+    if(user==null){
       throw Exception(['Invalid Token']);
     }
 
-    final result = await DatabaseService.colUsers.find().toList();
+    final result = await DatabaseService.colUsers.find(
+    ).toList();
 
     return Response.json(
       statusCode: HttpStatus.created,
       body: AppConstants.customResponseBody(
-          xSuccess: true,
-          message: 'Users Fetched Successfully',
-          data: result.map((e) {
-            return UserModel.fromMongo(data: e)
-                .toMap(excludedFields: ['password', 'token'], xFullPath: true);
-          }).toList()),
+        xSuccess: true,
+        message: 'Users Fetched Successfully',
+        data: result.map((e) {
+          return UserModel.fromMongo(data: e).toMap(
+            excludedFields: ['password','token'],
+            xFullPath: true
+          );
+        }).toList()
+      ),
     );
-  } catch (e) {
+  }
+  catch(e){
     return Response.json(
       statusCode: HttpStatus.badRequest,
       body: AppConstants.customResponseBody(
