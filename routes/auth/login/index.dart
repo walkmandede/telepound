@@ -4,31 +4,27 @@ import 'package:dart_frog/dart_frog.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import '../../../models/user_model.dart';
 import '../../../utils/app_constants.dart';
-import '../../../utils/global_functions.dart';
 import '../../../utils/services/db_orm.dart';
 import '../../../utils/services/db_services.dart';
 
-Future<Response> onRequest(RequestContext context) async{
-  if(context.request.method == HttpMethod.post){
+Future<Response> onRequest(RequestContext context) async {
+  if (context.request.method == HttpMethod.post) {
     return DatabaseService.startConnection(
       context,
       _middleware(context: context),
     );
-  }
-  else{
+  } else {
     return Response.json(
         statusCode: HttpStatus.methodNotAllowed,
         body: AppConstants.customResponseBody(
           xSuccess: false,
           message: 'Method Not Allowed',
-        )
-    );
+        ));
   }
 }
 
 Future<Response> _middleware({required RequestContext context}) async {
-
-  final payloads = (await context.request.json()) as Map<String,dynamic>;
+  final payloads = (await context.request.json()) as Map<String, dynamic>;
 
   final requiredFields = [
     'phone',
@@ -46,16 +42,15 @@ Future<Response> _middleware({required RequestContext context}) async {
     payloadKeys: payloadKeys,
   );
 
-  if(xValid){
-    try{
+  if (xValid) {
+    try {
       final phone = payloads['phone'];
       final password = payloads['password'];
 
       final result = await DatabaseService.colUsers.findOne(
-        where.eq('phone', phone).and(where.eq('password', password))
-      );
+          where.eq('phone', phone).and(where.eq('password', password)));
 
-      if(result==null){
+      if (result == null) {
         //wrongAuth
         return Response.json(
             statusCode: HttpStatus.badRequest,
@@ -63,67 +58,51 @@ Future<Response> _middleware({required RequestContext context}) async {
               xSuccess: false,
               message: 'Wrong phone or password! Try again!',
               // data: result
-            )
-        );
-      }
-      else{
+            ));
+      } else {
         //success
         final userModel = UserModel.fromMongo(data: result);
         final uuid = AppConstants.createUUID();
 
         final writeResult = await DatabaseORM.modifyDocument(
-            dbCollection: DatabaseService.colUsers,
-            objectId: userModel.id,
-            fieldName: 'token',
-            value: uuid,
+          dbCollection: DatabaseService.colUsers,
+          objectId: userModel.id,
+          fieldName: 'token',
+          value: uuid,
         );
 
-        if(writeResult.isFailure){
+        if (writeResult.isFailure) {
           return Response.json(
               statusCode: HttpStatus.badRequest,
               body: AppConstants.customResponseBody(
-                  xSuccess: false,
-                  message: 'Something went wrong',
-              )
-          );
+                xSuccess: false,
+                message: 'Something went wrong',
+              ));
         }
 
         return Response.json(
             statusCode: HttpStatus.accepted,
             body: AppConstants.customResponseBody(
-              xSuccess: true,
-              message: 'Login Success',
-              data: {
-                'token' : uuid,
-              }
-            )
-        );
+                xSuccess: true,
+                message: 'Login Success',
+                data: {
+                  'token': uuid,
+                }));
       }
-    }
-    catch(e){
+    } catch (e) {
       return Response.json(
           statusCode: HttpStatus.badRequest,
           body: AppConstants.customResponseBody(
             xSuccess: false,
             message: e.toString(),
-          )
-      );
+          ));
     }
-  }
-  else{
+  } else {
     return Response.json(
         statusCode: HttpStatus.badRequest,
         body: AppConstants.customResponseBody(
             xSuccess: false,
             message: 'Please make sure following fields are included',
-            data: <String,dynamic>{
-              'requiredFields' : requiredFields
-            }
-        )
-    );
+            data: <String, dynamic>{'requiredFields': requiredFields}));
   }
-
-
-
-
 }

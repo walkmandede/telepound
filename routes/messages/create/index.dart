@@ -9,32 +9,29 @@ import '../../../utils/global_functions.dart';
 import '../../../utils/services/db_orm.dart';
 import '../../../utils/services/db_services.dart';
 
-Future<Response> onRequest(RequestContext context) async{
-  if(context.request.method == HttpMethod.post){
+Future<Response> onRequest(RequestContext context) async {
+  if (context.request.method == HttpMethod.post) {
     return DatabaseService.startConnection(
       context,
       _middleware(context: context),
     );
-  }
-  else{
+  } else {
     return Response.json(
         statusCode: HttpStatus.methodNotAllowed,
         body: AppConstants.customResponseBody(
-            xSuccess: false,
-            message: 'Method Not Allowed',
-        )
-    );
+          xSuccess: false,
+          message: 'Method Not Allowed',
+        ));
   }
 }
 
 Future<Response> _middleware({required RequestContext context}) async {
-
-  try{
-    final token = context.request.headers['token']??'';
+  try {
+    final token = context.request.headers['token'] ?? '';
 
     final user = await DatabaseORM.fetchUserByToken(token: token);
 
-    if(user==null){
+    if (user == null) {
       throw Exception(['Invalid Token']);
     }
 
@@ -59,66 +56,55 @@ Future<Response> _middleware({required RequestContext context}) async {
       payloadKeys: payloadKeys,
     );
 
-    if(!xValid){
-      throw Exception([
-        'Please make sure following fields are included $requiredFields'
-      ]);
+    if (!xValid) {
+      throw Exception(
+          ['Please make sure following fields are included $requiredFields']);
     }
 
     final to = payload.fields['to'];
     final message = payload.fields['message'];
-    final image = payload.files['image'];
+    // final image = payload.files['image'];
 
     var toUser = await DatabaseORM.fetchDataById(
-        id: to.toString(),
-        col: DatabaseService.colUsers
-    );
+        id: to.toString(), col: DatabaseService.colUsers);
 
     toUser ??= await DatabaseORM.fetchDataById(
-          id: to.toString(),
-          col: DatabaseService.colGroups
-      );
+        id: to.toString(), col: DatabaseService.colGroups);
 
-    if(toUser==null){
-      throw Exception([
-        'Something went wrong in user ids'
-      ]);
+    if (toUser == null) {
+      throw Exception(['Something went wrong in user ids']);
     }
 
-    var imagePath = '';
+    // var imagePath = '';
 
-    if(image!=null){
-      imagePath = (
-          await DatabaseORM.storeFile(
-            context: context,
-            uploadedFile: image,
-            parentPath: AppConstants.filePathMessageImages
-          )
-      )??'';
-    }
+    // if(image!=null){
+    //   imagePath = (
+    //       await DatabaseORM.storeFile(
+    //         context: context,
+    //         uploadedFile: image,
+    //         parentPath: AppConstants.filePathMessageImages
+    //       )
+    //   )??'';
+    // }
 
     final messageModel = MessageModel(
       id: '',
       from: user.id,
       to: to.toString(),
       dateTime: DateTime.now(),
-      image: imagePath,
+      image: '',
       message: message.toString(),
     );
 
     final result = await DatabaseORM.insertDataIntoCollection(
-        dbCollection: DatabaseService.colMessages,
-        data: messageModel.toMap()
-    );
+        dbCollection: DatabaseService.colMessages, data: messageModel.toMap());
 
-    if(result==null){
+    if (result == null) {
       throw Exception(['Something went wrong']);
     }
-    if(!result.isSuccess){
+    if (!result.isSuccess) {
       throw Exception(['Something went wrong']);
     }
-
-
 
     return Response.json(
       statusCode: HttpStatus.created,
@@ -128,8 +114,7 @@ Future<Response> _middleware({required RequestContext context}) async {
         data: messageModel.toMap(excludedFields: ['id']),
       ),
     );
-  }
-  catch(e){
+  } catch (e) {
     return Response.json(
       statusCode: HttpStatus.badRequest,
       body: AppConstants.customResponseBody(

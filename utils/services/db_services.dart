@@ -1,8 +1,6 @@
 import 'package:dart_frog/dart_frog.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
-import '../global_functions.dart';
-
 class DatabaseService {
   static const dbAddress =
       'mongodb+srv://walkmandede:sio64ati7o@cluster0.qag8tm8.mongodb.net/telepound?retryWrites=true&w=majority';
@@ -16,12 +14,12 @@ class DatabaseService {
 
   static Future<void> connect() async {
     db = await Db.create(dbAddress);
-    await db.open();
+    await db.open(secure: true);
   }
 
   static Future<void> openDb() async {
     if (db.isConnected == false) {
-      await db.open();
+      await db.open(secure: true);
     }
   }
 
@@ -44,16 +42,21 @@ class DatabaseService {
     RequestContext context,
     Future<Response> callBack,
   ) async {
+    var response = Response.json(
+      statusCode: 500,
+      body: {'message': 'Internal server error'},
+    );
+    try {
+      await connect();
+    } catch (_) {}
     try {
       // await openDb();
-      final response = await callBack;
+      response = await callBack;
       // await closeDb();
-      return response;
-    } catch (e) {
-      return Response.json(
-        statusCode: 500,
-        body: {'message': 'Internal server error $e'},
-      );
-    }
+    } catch (_) {}
+    try {
+      await closeDb();
+    } catch (_) {}
+    return response;
   }
 }

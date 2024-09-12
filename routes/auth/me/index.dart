@@ -31,7 +31,7 @@ Future<Response> _middleware({required RequestContext context}) async {
     return Response.json(
       statusCode: HttpStatus.created,
       body: AppConstants.customResponseBody(
-        xSuccess: false,
+        xSuccess: true,
         message: 'Successfully Fetched',
         data: user.toMap(excludedFields: ['password'], xFullPath: true),
       ),

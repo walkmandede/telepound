@@ -44,7 +44,7 @@ Future<Response> _middleware({required RequestContext context}) async {
     }
 
     final result = await DatabaseService.colMessages.find(
-      where.eq('to', toId)
+      where.eq('to', toId),
     ).toList();
 
     return Response.json(
