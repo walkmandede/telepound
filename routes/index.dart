@@ -6,7 +6,7 @@ Future<Response> onRequest(RequestContext context) async {
   return Response.json(
     body: AppConstants.customResponseBody(
       xSuccess: true,
-      message: 'Welcome to Telepound v1.0.4',
+      message: 'Welcome to Telepound v1.0.5',
     ),
   );
 }
